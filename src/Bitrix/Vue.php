@@ -8,27 +8,29 @@ class Vue
 {
     const COMPONENTS_PATH = '/local/components-vue';
 
-    protected static $inited = false;
+    protected static $init = false;
     protected static $arHtml = [];
     protected static $arIncluded = [];
 
     /**
+     * Подключает Vue-компонет
+     *
      * @param string $name
      * @param array $addFiles
      * @throws \Exception
      */
     public static function includeComponent(string $name, array $addFiles = []) {
-        if (self::$inited !== true) {
+        if (self::$init !== true) {
             self::checkBitrix();
-            self::$inited = true;
+            self::$init = true;
             \AddEventHandler('main', 'OnEndBufferContent', ['\Dbogdanoff\Bitrix\Vue', 'insertComponents']);
         }
 
         if (self::$arIncluded[ $name ] !== true) {
             self::$arIncluded[ $name ] = true;
 
-            $docPath    = self::getComponentsPath();
-            $rootPath   = $_SERVER['DOCUMENT_ROOT'] . $docPath;
+            $docPath = self::getComponentsPath();
+            $rootPath = $_SERVER['DOCUMENT_ROOT'] . $docPath;
 
             if (file_exists($template = $rootPath .'/'. $name .'/template.vue')) {
                 self::$arHtml[] = file_get_contents($template);
@@ -36,6 +38,7 @@ class Vue
 
             // Подключает зависимости скрипты и стили
             if (file_exists($settings = $rootPath .'/'. $name .'/.settings.php')) {
+                /** @var array $settings */
                 $settings = require_once $settings;
                 if (is_array($settings['require'])) {
                     foreach($settings['require'] as $file) {
@@ -59,28 +62,49 @@ class Vue
         }
     }
 
+    /**
+     * Подключает js или css файл
+     * @param string $file
+     */
     public static function addFile(string $file) {
-        if (strpos($file, 'js') !== false) {
+        if (strpos($file, '.js') !== false) {
             Asset::getInstance()->addJs($file);
         }
-        else if (strpos($file, 'css') !== false) {
+        else if (strpos($file, '.css') !== false) {
             Asset::getInstance()->addCss($file);
         }
     }
 
     /**
-     * Вставка компонентов.
+     * Вставляет все подключенные компоненты в тело документа
      * Метод обработчик события OnEndBufferContent
      *
      * @param $content
      */
     public static function insertComponents(&$content) {
-        $include = "<div style='display:none'>\n". implode("\n", self::$arHtml) ."</div>\n";
-        $content = str_replace("<body>", "<body>\n". $include, $content);
+        $include  = "<div style='display:none'>";
+        $include .= self::getGlobalJsConfig()."\n";
+        $include .= implode("\n", self::$arHtml)."\n";
+        $include .= "</div>";
+        $content  = str_replace("<body>", "<body>\n". $include, $content);
     }
 
     /**
-     * Возвращает путь к директории с компонентами
+     * Инициализирует глобальные настройки, доступные в компонентах this.$bx
+     * @return string
+     */
+    protected static function getGlobalJsConfig(): string {
+        $script  = '<script>';
+        $script .= 'Vue.prototype.$bx=';
+        $script .= json_encode([
+            'componentsPath' => self::getComponentsPath()
+        ]);
+        $script .= '</script>';
+        return $script;
+    }
+
+    /**
+     * Путь к директории с компонентами
      * @return string
      */
     protected static function getComponentsPath(): string {
