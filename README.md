@@ -114,6 +114,6 @@ define('DBOGDANOFF_VUE_PATH', '/components-vue');
 ```
 
 ----------
-**Но лучше один раз увидеть, чем 100500 раз прочитать *(чуть позже)*.**
-*Демо сайт [https://example.com](https://example.com)*
+**Но лучше один раз увидеть, чем 100500 раз прочитать *(чуть позже)*.**\
+*Демо сайт [https://example.com](https://example.com)*\
 *Репозиторий сайта: [https://example.com](https://example.com)*
