@@ -3,42 +3,45 @@
 ```php
 <?php
 use Dbogdanoff\Bitrix\Vue;
-
-// string name
 Vue::includeComponent('component-name');
-
-// array names
-Vue::includeComponent([
-    'block-header',
-    'block-footer',
-    'dbogdanoff-loader',
-    'dbogdanoff-popup'
-]);
 ```
 
-Your App:
-```html
-<div id="app">
-  <block-header></block-header>
-  <block-footer></block-footer>
-  <dbogdanoff-loader></dbogdanoff-loader>
-  <dbogdanoff-popup></dbogdanoff-popup>
-  ...
-</div>
-```
-
-Default directory structure:
+Структура компонентов:
 ```php
 /*
-/local/components-vue
-/local/components-vue/component-name
-/local/components-vue/component-name/.settins.php
-/local/components-vue/component-name/template.vue
-/local/components-vue/component-name/script.js
-/local/components-vue/component-name/style.css
+local/
+└── components-vue/
+    |── component-one/
+    |   └── template.vue
+    |── component-two/
+    |   └── template.vue
+    └── component-three/
+        ├── .settings.php
+        ├── template.vue
+        ├── script.js
+        └── style.css
 */
 ```
+Ни одни из перечисленных файлов компонента не является обязательным, таким образом весь компонент может быть описан в одном script.js файле или в одном template.vue файле. 
 
+В .setting.php могут быть указаны дополнительные зависимости, которые будут автоматически подключены при подключении компонента:
+```php
+<?
+return [
+    'require' => [
+        'https://unpkg.com/flickity@2.1.2/dist/flickity.pkgd.min.js',
+        'https://unpkg.com/flickity@2.1.2/dist/flickity.min.css'
+    ]
+];
+```
+При наличии минифицированных стилей или скриптов и установленной соответствующей опции в главном модуле, будут подключены минифицированные файлы.
+
+По умолчанию поиск компонентов производится в папке /local/components-vue
+Данное поведение можно изменить, объявив константу DBOGDANOFF_VUE_PATH
+```php
+// компоненты в корне сайта в директории 'components-vue'
+define('DBOGDANOFF_VUE_PATH', '/components-vue');
+```
 ## Requirements
 
 Bitrix Vue Component requires the following:
@@ -69,7 +72,7 @@ You can of course also manually edit your composer.json file
 }
 ```
 
-## Sample component
+## Sample component template
 
 ``` html
 <template id="block-blue">
@@ -82,37 +85,6 @@ Vue.component('block-blue', {
 });
 </script>
 ```
-*Компонент может содержать следующие файлы:*
-
-     - .settings.php
-     - template.vue
-     - script.js
-     - style.css
-
-Ни одни из файлов не является обязательным, таким образом весь компонент может быть описан в одном script.js файле или в одном template.vue файле. 
-
-При наличии минифицированных стилей или скриптов и установленной соответствующей опции в главном модуле, будут подключены минифицированные файлы.
-
-```php
-<?
-/*
-В .setting.php могут быть указаны доп. зависимости компонента
-которые будут автоматически подключены при подключении компонента
-*/
-return [
-    'require' => [
-        'https://unpkg.com/flickity@2.1.2/dist/flickity.pkgd.min.js',
-        'https://unpkg.com/flickity@2.1.2/dist/flickity.min.css'
-    ]
-];
-```
-По умолчанию поиск компонентов производится в папке /local/components-vue
-Данное поведение можно изменить, объявив константу DBOGDANOFF_VUE_PATH
-```php
-// компоненты в корне сайта в директории 'components-vue'
-define('DBOGDANOFF_VUE_PATH', '/components-vue');
-```
-
 ----------
 **Но лучше один раз увидеть, чем 100500 раз прочитать.**\
 *Демо сайт: [https://bitrix-vue-demo.dbogdanoff.ru/](https://bitrix-vue-demo.dbogdanoff.ru/)*\
