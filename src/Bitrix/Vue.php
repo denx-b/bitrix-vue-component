@@ -93,7 +93,7 @@ class Vue
         $include .= implode("\n", self::$arHtml) . "\n";
         $include .= self::getGlobalJsConfig() . "\n";
         $include .= "</div>";
-        $content = str_replace("<body>", "<body>\n" . $include, $content);
+        $content = preg_replace('/<body(.*)>/', "<body$1>\n" . $include, $content, 1);
         if (defined('DBOGDANOFF_VUE_REPLACE_DOUBLE_EOL')) {
             $content = self::replaceDoubleEol($content);
         }
