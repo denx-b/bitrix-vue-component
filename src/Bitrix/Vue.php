@@ -76,7 +76,7 @@ class Vue
             Asset::getInstance()->addJs($file);
         } else {
             if (strpos($file, '.css') !== false) {
-                Asset::getInstance()->addCss($file);
+                $GLOBALS['APPLICATION']->SetAdditionalCSS($file);
             }
         }
     }
