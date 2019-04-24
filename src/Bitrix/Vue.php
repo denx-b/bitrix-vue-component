@@ -114,7 +114,8 @@ class Vue
         $script = '<script>';
         $script .= 'Vue.prototype.$bx=';
         $script .= json_encode([
-            'componentsPath' => self::getComponentsPath()
+            'componentsPath' => self::getComponentsPath(),
+            'siteTemplatePath' => SITE_TEMPLATE_PATH
         ]);
         $script .= '</script>';
         return $script;
