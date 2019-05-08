@@ -94,15 +94,26 @@ class Vue
         $include .= self::getGlobalJsConfig() . "\n";
         $include .= "</div>";
         $content = preg_replace('/<body(.*)>/', "<body$1>\n" . $include, $content, 1);
-        if (defined('DBOGDANOFF_VUE_REPLACE_DOUBLE_EOL')) {
+        if (defined('DBOGDANOFF_VUE_REPLACE_DOUBLE_EOL') && $GLOBALS['USER']->IsAuthorized() !== true) {
             $content = self::replaceDoubleEol($content);
         }
     }
 
-    protected static function replaceDoubleEol($content): string
+    protected static function replaceDoubleEol(&$content): string
     {
         $content = preg_replace("/\r\n|\r|\n/", "\n", $content);
-        return preg_replace("/\n+/", "\n", $content);
+        $content = preg_replace("/\n\s+/", "\n", $content);
+
+        $arReplace = [
+            "/>\n/" => '>',
+            "/\n</" => ' <',
+            "/\nv-/" => ' v-',
+            "/\n}/" => '}',
+            "/{\n/" => '{'
+        ];
+
+        $content = preg_replace(array_keys($arReplace), $arReplace, $content);
+        return $content;
     }
 
     /**
