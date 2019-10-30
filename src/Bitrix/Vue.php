@@ -72,11 +72,13 @@ class Vue
      */
     public static function addFile(string $file)
     {
+        global $APPLICATION;
+
         if (strpos($file, '.js') !== false) {
             Asset::getInstance()->addJs($file);
         } else {
             if (strpos($file, '.css') !== false) {
-                $GLOBALS['APPLICATION']->SetAdditionalCSS($file);
+                $APPLICATION->SetAdditionalCSS($file);
             }
         }
     }
@@ -89,18 +91,18 @@ class Vue
      */
     public static function insertComponents(&$content)
     {
-        $include = "<div style='display:none'>" . "\n";
-        $include .= implode("\n", self::$arHtml) . "\n";
-        $include .= self::getGlobalJsConfig() . "\n";
+        $include = "<div style='display:none'>";
+        $include .= implode("\n", self::$arHtml);
+        $include .= self::getGlobalJsConfig();
         $include .= "</div>";
-        $content = preg_replace('/<body(.*)>/', "<body$1>\n" . $include, $content, 1);
+        $content = preg_replace('/<body(.*)>/', "<body$1>" . $include, $content, 1);
         if (
             defined('DBOGDANOFF_VUE_REPLACE_DOUBLE_EOL') &&
-            $GLOBALS['USER']->IsAuthorized() !== true &&
             strpos($_SERVER['REQUEST_URI'], '/bitrix') === false &&
             strpos($_SERVER['REQUEST_URI'], '/local') === false &&
             strpos($_SERVER['REQUEST_URI'], '/api') === false &&
-            !preg_match('/.*\.(pdf|png|jpg|jpeg|gif|webp|exe)/i', $_SERVER['REQUEST_URI'])
+            !preg_match('/.*\.(pdf|png|jpg|jpeg|gif|webp|exe)/i', $_SERVER['REQUEST_URI']) &&
+            self::checkAdminAccess() !== true
         ) {
             $content = self::replaceDoubleEol($content);
         }
@@ -108,19 +110,14 @@ class Vue
 
     protected static function replaceDoubleEol(&$content): string
     {
-        $content = preg_replace("/\r\n|\r|\n/", "\n", $content);
-        $content = preg_replace("/\n\s+/", "\n", $content);
-
         $arReplace = [
-            "/>\n/" => '>',
-            "/\n</" => ' <',
-            "/\nv-/" => ' v-',
-            "/\n}/" => '}',
-            "/{\n/" => '{'
+            '/\>[^\S ]+/s' => '>',
+            '/[^\S ]+\</s' => ' <',
+            '/(\s)+/s' => '\\1'
         ];
 
         $content = preg_replace(array_keys($arReplace), $arReplace, $content);
-        return $content;
+        return trim($content);
     }
 
     /**
@@ -161,5 +158,46 @@ class Vue
         if (!\CheckVersion(ModuleManager::getVersion('main'), '14.00.00')) {
             throw new \Exception('Current edition does not support D7');
         }
+    }
+
+    /**
+     * Метод возвращает true если у текущего пользователя есть доступ в админку
+     * @return bool
+     */
+    public static function checkAdminAccess(): bool
+    {
+        global $USER;
+
+        if (!$USER->IsAuthorized() || !file_exists($_SERVER['DOCUMENT_ROOT'] . '/bitrix/.access.php')) {
+            return false;
+        }
+
+        if ($USER->IsAdmin()) {
+            return true;
+        }
+
+        include $_SERVER['DOCUMENT_ROOT'] . '/bitrix/.access.php';
+
+        /** @var array $PERM */
+        if (!$PERM['admin']) {
+            return false;
+        }
+
+        $arAccess = [];
+        $arGroups = $USER->GetUserGroupArray();
+
+        foreach ($PERM['admin'] as $group_id => $access) {
+            if (in_array($access, ['R', 'W', 'X']) && is_numeric($group_id)) {
+                $arAccess[$group_id] = true;
+            }
+        }
+
+        foreach ($arGroups as $group_id) {
+            if ($arAccess[$group_id] === true) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
