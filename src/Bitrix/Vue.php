@@ -94,7 +94,14 @@ class Vue
         $include .= self::getGlobalJsConfig() . "\n";
         $include .= "</div>";
         $content = preg_replace('/<body(.*)>/', "<body$1>\n" . $include, $content, 1);
-        if (defined('DBOGDANOFF_VUE_REPLACE_DOUBLE_EOL') && $GLOBALS['USER']->IsAuthorized() !== true) {
+        if (
+            defined('DBOGDANOFF_VUE_REPLACE_DOUBLE_EOL') &&
+            $GLOBALS['USER']->IsAuthorized() !== true &&
+            strpos($_SERVER['REQUEST_URI'], '/bitrix') === false &&
+            strpos($_SERVER['REQUEST_URI'], '/local') === false &&
+            strpos($_SERVER['REQUEST_URI'], '/api') === false &&
+            !preg_match('/.*\.(pdf|png|jpg|jpeg|gif|webp|exe)/i', $_SERVER['REQUEST_URI'])
+        ) {
             $content = self::replaceDoubleEol($content);
         }
     }
