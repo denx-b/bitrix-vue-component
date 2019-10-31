@@ -95,7 +95,7 @@ class Vue
         $include .= implode("\n", self::$arHtml);
         $include .= self::getGlobalJsConfig();
         $include .= "</div>";
-        $content = preg_replace('/<body([^>])>/', "<body$1>" . $include, $content, 1);
+        $content = preg_replace('/<body([^>]*)?>/', "<body$1>" . $include, $content, 1);
         if (
             defined('DBOGDANOFF_VUE_REPLACE_DOUBLE_EOL') &&
             strpos($_SERVER['REQUEST_URI'], '/bitrix') === false &&
@@ -108,7 +108,7 @@ class Vue
         }
     }
 
-    protected static function replaceDoubleEol(&$content): string
+    protected static function replaceDoubleEol($content): string
     {
         $arReplace = [
             '/\>[^\S ]+/s' => '>',
