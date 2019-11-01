@@ -29,38 +29,40 @@ class Vue
         }
 
         foreach ((array)$componentName as $name) {
-            if (self::$arIncluded[$name] !== true) {
-                self::$arIncluded[$name] = true;
+            if (self::$arIncluded[$name] === true) {
+                continue;
+            }
 
-                $docPath = self::getComponentsPath();
-                $rootPath = $_SERVER['DOCUMENT_ROOT'] . $docPath;
+            self::$arIncluded[$name] = true;
 
-                // Подключает зависимости скрипты/стили
-                if (file_exists($settings = $rootPath . '/' . $name . '/.settings.php')) {
-                    $settings = require_once $settings;
-                    if (array_key_exists('require', $settings)) {
-                        foreach ((array)$settings['require'] as $file) {
-                            self::addFile($file);
-                        }
+            $docPath = self::getComponentsPath();
+            $rootPath = $_SERVER['DOCUMENT_ROOT'] . $docPath;
+
+            // Подключает зависимости скрипты/стили
+            if (file_exists($settings = $rootPath . '/' . $name . '/.settings.php')) {
+                $settings = require_once $settings;
+                if (array_key_exists('require', $settings)) {
+                    foreach ((array)$settings['require'] as $file) {
+                        self::addFile($file);
                     }
                 }
+            }
 
-                // Подключает доп. зависимости скрипты/стили
-                foreach ($addFiles as $file) {
-                    self::addFile($file);
-                }
+            // Подключает доп. зависимости скрипты/стили
+            foreach ($addFiles as $file) {
+                self::addFile($file);
+            }
 
-                if (file_exists($template = $rootPath . '/' . $name . '/template.vue')) {
-                    self::$arHtml[] = file_get_contents($template);
-                }
+            if (file_exists($template = $rootPath . '/' . $name . '/template.vue')) {
+                self::$arHtml[] = file_get_contents($template);
+            }
 
-                if (file_exists($rootPath . '/' . $name . '/script.js')) {
-                    self::addFile($docPath . '/' . $name . '/script.js');
-                }
+            if (file_exists($rootPath . '/' . $name . '/script.js')) {
+                self::addFile($docPath . '/' . $name . '/script.js');
+            }
 
-                if (file_exists($rootPath . '/' . $name . '/style.css')) {
-                    self::addFile($docPath . '/' . $name . '/style.css');
-                }
+            if (file_exists($rootPath . '/' . $name . '/style.css')) {
+                self::addFile($docPath . '/' . $name . '/style.css');
             }
         }
     }
@@ -97,7 +99,7 @@ class Vue
         $include .= "</div>";
         $content = preg_replace('/<body([^>]*)?>/', "<body$1>" . $include, $content, 1);
         if (
-            defined('DBOGDANOFF_VUE_REPLACE_DOUBLE_EOL') &&
+            self::getReplaceDoubleEol() &&
             strpos($_SERVER['REQUEST_URI'], '/bitrix') === false &&
             strpos($_SERVER['REQUEST_URI'], '/local') === false &&
             strpos($_SERVER['REQUEST_URI'], '/api') === false &&
@@ -108,7 +110,13 @@ class Vue
         }
     }
 
-    protected static function replaceDoubleEol($content): string
+    /**
+     * Минификация html-кода
+     *
+     * @param $content
+     * @return string
+     */
+    public static function replaceDoubleEol($content): string
     {
         $arReplace = [
             '/\>[^\S ]+/s' => '>',
@@ -117,6 +125,7 @@ class Vue
         ];
 
         $content = preg_replace(array_keys($arReplace), $arReplace, $content);
+
         return trim($content);
     }
 
@@ -124,7 +133,7 @@ class Vue
      * Инициализирует глобальные настройки, доступные в компонентах this.$bx
      * @return string
      */
-    protected static function getGlobalJsConfig(): string
+    public static function getGlobalJsConfig(): string
     {
         $script = '<script>';
         $script .= 'Vue.prototype.$bx=';
@@ -133,6 +142,7 @@ class Vue
             'siteTemplatePath' => SITE_TEMPLATE_PATH
         ]);
         $script .= '</script>';
+
         return $script;
     }
 
@@ -140,11 +150,28 @@ class Vue
      * Путь к директории с компонентами
      * @return string
      */
-    protected static function getComponentsPath(): string
+    public static function getComponentsPath(): string
     {
-        return defined('DBOGDANOFF_VUE_PATH') ? '/' . trim(DBOGDANOFF_VUE_PATH, '/') : self::COMPONENTS_PATH;
+        if (defined('DBOGDANOFF_VUE_PATH')) {
+            return '/' . trim(DBOGDANOFF_VUE_PATH, '/');
+        }
+
+        return self::COMPONENTS_PATH;
     }
 
+    /**
+     * Надо ли минифицировать вывод?
+     * @return bool
+     */
+    public static function getReplaceDoubleEol(): bool
+    {
+        if (defined('DBOGDANOFF_VUE_REPLACE_DOUBLE_EOL')) {
+            return (bool)DBOGDANOFF_VUE_REPLACE_DOUBLE_EOL;
+        }
+
+        return false;
+    }
+    
     /**
      * Проверка подключения пролога и версии ядра
      * @throws \Exception
