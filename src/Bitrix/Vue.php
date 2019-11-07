@@ -99,33 +99,35 @@ class Vue
         $include .= "</div>";
         $content = preg_replace('/<body([^>]*)?>/', "<body$1>" . $include, $content, 1);
         if (
-            self::getReplaceDoubleEol() &&
+            defined('DBOGDANOFF_VUE_MINIFY') &&
             strpos($_SERVER['REQUEST_URI'], '/bitrix') === false &&
             strpos($_SERVER['REQUEST_URI'], '/local') === false &&
+            strpos($_SERVER['REQUEST_URI'], '/rest') === false &&
             strpos($_SERVER['REQUEST_URI'], '/api') === false &&
             !preg_match('/.*\.(pdf|png|jpg|jpeg|gif|webp|exe)/i', $_SERVER['REQUEST_URI']) &&
             $GLOBALS['APPLICATION']->PanelShowed !== true
         ) {
-            $content = self::replaceDoubleEol($content);
+            $content = self::minifyContent($content, DBOGDANOFF_VUE_MINIFY);
         }
     }
 
     /**
      * Минификация html-кода
      *
-     * @param $content
+     * @param string $content
+     * @param string $rate степень минификации hard|soft
      * @return string
      */
-    public static function replaceDoubleEol($content): string
+    public static function minifyContent(string $content, string $rate = 'soft'): string
     {
-        $arReplace = [
-            '/\>[^\S ]+/s' => '>',
-            '/[^\S ]+\</s' => ' <',
-            '/(\s)+/s' => '\\1'
-        ];
+        $arReplace = ['/(\s)+/s' => '\\1'];
+
+        if (strtolower($rate) === 'hard') {
+            $arReplace['/\>[^\S ]+/s'] = '>';
+            $arReplace['/[^\S ]+\</s'] = ' <';
+        }
 
         $content = preg_replace(array_keys($arReplace), $arReplace, $content);
-
         return trim($content);
     }
 
@@ -157,19 +159,6 @@ class Vue
         }
 
         return self::COMPONENTS_PATH;
-    }
-
-    /**
-     * Надо ли минифицировать вывод?
-     * @return bool
-     */
-    public static function getReplaceDoubleEol(): bool
-    {
-        if (defined('DBOGDANOFF_VUE_REPLACE_DOUBLE_EOL')) {
-            return (bool)DBOGDANOFF_VUE_REPLACE_DOUBLE_EOL;
-        }
-
-        return false;
     }
     
     /**
