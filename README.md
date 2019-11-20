@@ -3,28 +3,37 @@
 ```php
 <?php
 use Dbogdanoff\Bitrix\Vue;
-
-Vue::includeComponent('component-name');
-Vue::includeComponent(['component-two', 'component-three']);
+Vue::includeComponent([
+    'component-one',
+    'component-two'
+]);
 ```
 
 Структура компонентов:
 ```php
 /*
 local/
-└── components-vue/
-    └── component-one/
-        ├── .settings.php
-        ├── template.vue
-        ├── script.js
-        └── style.css
-    |── component-two/
-    |   └── template.vue
-    └── component-three/
-        └── template.vue
+└─ components-vue/
+    ├─ component-one/
+    |   ├─ .settings.php
+    |   ├─ template.vue
+    |   ├─ script.js
+    |   └─ style.css
+    ├─ component-two/
+    |   └─ template.vue
+    └─ component-three/
+        └─ script.js
 */
 ```
-Ни одни из перечисленных файлов компонента не является обязательным, таким образом весь компонент может быть описан в одном script.js файле или в одном template.vue файле. 
+Как видите, весь компонент может быть описан в одном script.js файле или в одном template.vue файле.\
+С реализацией того или иного способа разработчики Vue.js [хорошо знакомы](https://ru.vuejs.org/v2/guide/components.html).
+
+Примеры с демо сайта:
+ - [только template.vue](https://github.com/denx-b/bitrix-vue-component-demo/tree/master/local/components-vue/simple-block)
+ - [только script.js](https://github.com/denx-b/bitrix-vue-component-demo/tree/master/local/components-vue/dbogdanoff-loader)
+ - [шаблон в template.vue, а регистрация компонента в script.js](https://github.com/denx-b/bitrix-vue-component-demo/tree/master/local/components-vue/upload-photo)
+
+При наличии минифицированных стилей или скриптов и установленной соответствующей опции в главном модуле, будут подключены минифицированные файлы.
 
 В .settings.php могут быть указаны дополнительные зависимости, которые будут автоматически подключены при подключении компонента:
 ```php
@@ -36,11 +45,11 @@ return [
     ]
 ];
 ```
-При наличии минифицированных стилей или скриптов и установленной соответствующей опции в главном модуле, будут подключены минифицированные файлы.
 
 ### Путь к компонентам
-По умолчанию поиск компонентов производится в папке /local/components-vue
-Данное поведение можно изменить, объявив константу DBOGDANOFF_VUE_PATH
+По умолчанию поиск компонентов производится в папке /local/components-vue\
+Данное поведение можно изменить, объявив константу DBOGDANOFF_VUE_PATH\
+Это может быть актуально для многосайтовости.
 ```php
 // Компоненты в корне сайта в директории '/components-vue'
 define('DBOGDANOFF_VUE_PATH', '/components-vue');
