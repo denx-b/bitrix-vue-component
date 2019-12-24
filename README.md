@@ -2,14 +2,48 @@
 
 ```php
 <?php
-use Dbogdanoff\Bitrix\Vue;
-Vue::includeComponent([
-    'component-one',
-    'component-two'
-]);
+Dbogdanoff\Bitrix\Vue::includeComponent(['todo-list']);
+?>
+
+<div id="app">
+    <todo-list></todo-list>
+</div>
+
+<script>
+  var mainVueApp = new Vue({
+    el: '#app'
+  })
+</script>
 ```
 
-Структура компонентов:
+```vue
+# /local/components-vue/todo-list/template.vue:
+<template id="todo-list">
+    <ol>
+        <li v-for="todo in todos">
+            {{ todo.text }}
+        </li>
+    </ol>
+</template>
+
+<script>
+  Vue.component('todo-list', {
+    template: '#todo-list',
+    data: function () {
+      return {
+        todos: [
+          {text: 'Изучить JavaScript'},
+          {text: 'Изучить Vue'},
+          {text: 'Создать что-нибудь классное'}
+        ]
+      }
+    }
+  })
+</script>
+
+```
+
+### Структура компонентов
 ```php
 /*
 local/
@@ -25,7 +59,7 @@ local/
         └─ script.js
 */
 ```
-Как видите, весь компонент может быть описан в одном script.js файле или в одном template.vue файле.\
+По схеме видно, что весь компонент может быть описан в одном script.js или в одном template.vue файле.\
 С реализацией того или иного способа разработчики Vue.js [хорошо знакомы](https://ru.vuejs.org/v2/guide/components.html).
 
 Примеры с демо сайта:
@@ -33,7 +67,7 @@ local/
  - [только script.js](https://github.com/denx-b/bitrix-vue-component-demo/tree/master/local/components-vue/dbogdanoff-loader)
  - [шаблон в template.vue, а регистрация компонента в script.js](https://github.com/denx-b/bitrix-vue-component-demo/tree/master/local/components-vue/upload-photo)
 
-При наличии минифицированных стилей или скриптов и установленной соответствующей опции в главном модуле, будут подключены минифицированные файлы.
+При наличии минифицированных стилей или скриптов, в папке компонента, и установленной соответствующей опции в главном модуле, будут подключены минифицированные файлы.
 
 В .settings.php могут быть указаны дополнительные зависимости, которые будут автоматически подключены при подключении компонента:
 ```php
@@ -101,24 +135,11 @@ You can of course also manually edit your composer.json file
 ```json
 {
     "require": {
-       "denx-b/bitrix-vue-component": "0.4.*"
+       "denx-b/bitrix-vue-component": "0.9.*"
     }
 }
 ```
 
-## Sample component template
-
-``` html
-<template id="block-blue">
-  <div>Text here...</div>
-</template>
-
-<script>
-Vue.component('block-blue', {
-  template: '#block-blue'
-});
-</script>
-```
 ----------
 **Но лучше один раз увидеть, чем 100500 раз прочитать.**\
 *Демо сайт: [https://bitrix-vue-demo.dbogdanoff.ru/](https://bitrix-vue-demo.dbogdanoff.ru/)*\
