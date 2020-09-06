@@ -1,7 +1,8 @@
-<?
+<?php
 
 namespace Dbogdanoff\Bitrix;
 
+use Exception;
 use Bitrix\Main\Page\Asset;
 use Bitrix\Main\ModuleManager;
 
@@ -14,17 +15,24 @@ class Vue
     protected static $arIncluded = [];
 
     /**
-     * Подключает Vue-компонет
+     * Подключает Vue-компонент
      *
      * @param string|array $componentName
      * @param array $addFiles
-     * @throws \Exception
+     * @throws Exception
      */
     public static function includeComponent($componentName, array $addFiles = [])
     {
         if (self::$init !== true) {
             self::checkBitrix();
             self::$init = true;
+
+            // Подключаем Vue.js и Vuex
+            if (defined('DBOGDANOFF_ADD_JS') && DBOGDANOFF_ADD_JS === true) {
+                Asset::getInstance()->addJs('https://unpkg.com/vuex@3.5.1/dist/vuex' . (!defined('DBOGDANOFF_DEV') ? '.min' : '') . '.js');
+                Asset::getInstance()->addJs('https://unpkg.com/vue@2.6.11/dist/vue' . (!defined('DBOGDANOFF_DEV') ? '.min' : '') . '.js');
+            }
+
             \AddEventHandler('main', 'OnEndBufferContent', ['\Dbogdanoff\Bitrix\Vue', 'insertComponents']);
         }
 
@@ -57,12 +65,20 @@ class Vue
                 self::$arHtml[] = file_get_contents($template);
             }
 
-            if (file_exists($rootPath . '/' . $name . '/script.js')) {
+            if (!defined('DBOGDANOFF_DEV') && file_exists($rootPath . '/' . $name . '/script.min.js')) {
+                self::addFile($docPath . '/' . $name . '/script.min.js');
+            } elseif (file_exists($rootPath . '/' . $name . '/script.js')) {
                 self::addFile($docPath . '/' . $name . '/script.js');
+            } elseif (file_exists($rootPath . '/' . $name . '/script.min.js')) {
+                self::addFile($docPath . '/' . $name . '/script.min.js');
             }
 
-            if (file_exists($rootPath . '/' . $name . '/style.css')) {
+            if (!defined('DBOGDANOFF_DEV') && file_exists($rootPath . '/' . $name . '/style.min.css')) {
+                self::addFile($docPath . '/' . $name . '/style.min.css');
+            } elseif (file_exists($rootPath . '/' . $name . '/style.css')) {
                 self::addFile($docPath . '/' . $name . '/style.css');
+            } elseif (file_exists($rootPath . '/' . $name . '/style.min.css')) {
+                self::addFile($docPath . '/' . $name . '/style.min.css');
             }
         }
     }
@@ -163,16 +179,16 @@ class Vue
     
     /**
      * Проверка подключения пролога и версии ядра
-     * @throws \Exception
+     * @throws Exception
      */
     protected static function checkBitrix()
     {
         if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
-            throw new \Exception('Bitrix not found');
+            throw new Exception('Bitrix not found');
         }
 
         if (!\CheckVersion(ModuleManager::getVersion('main'), '14.00.00')) {
-            throw new \Exception('Current edition does not support D7');
+            throw new Exception('Current edition does not support D7');
         }
     }
 }
