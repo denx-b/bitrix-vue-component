@@ -4,7 +4,6 @@ namespace Dbogdanoff\Bitrix;
 
 use Exception;
 use Bitrix\Main\Page\Asset;
-use Bitrix\Main\ModuleManager;
 
 class Vue
 {
@@ -24,7 +23,7 @@ class Vue
     public static function includeComponent($componentName, array $addFiles = [])
     {
         if (self::$init !== true) {
-            self::checkBitrix();
+            System::checkBitrix();
             self::$init = true;
 
             // Подключаем Vue.js и Vuex
@@ -123,28 +122,8 @@ class Vue
             !preg_match('/.*\.(pdf|png|jpg|jpeg|gif|webp|exe)/i', $_SERVER['REQUEST_URI']) &&
             $GLOBALS['APPLICATION']->PanelShowed !== true
         ) {
-            $content = self::minifyContent($content, DBOGDANOFF_VUE_MINIFY);
+            $content = System::minifyContent($content, DBOGDANOFF_VUE_MINIFY);
         }
-    }
-
-    /**
-     * Минификация html-кода
-     *
-     * @param string $content
-     * @param string $rate степень минификации hard|soft
-     * @return string
-     */
-    public static function minifyContent(string $content, string $rate = 'soft'): string
-    {
-        $arReplace = ['/(\s)+/s' => '\\1'];
-
-        if (strtolower($rate) === 'hard') {
-            $arReplace['/\>[^\S ]+/s'] = '>';
-            $arReplace['/[^\S ]+\</s'] = ' <';
-        }
-
-        $content = preg_replace(array_keys($arReplace), $arReplace, $content);
-        return trim($content);
     }
 
     /**
@@ -175,20 +154,5 @@ class Vue
         }
 
         return self::COMPONENTS_PATH;
-    }
-    
-    /**
-     * Проверка подключения пролога и версии ядра
-     * @throws Exception
-     */
-    protected static function checkBitrix()
-    {
-        if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
-            throw new Exception('Bitrix not found');
-        }
-
-        if (!\CheckVersion(ModuleManager::getVersion('main'), '14.00.00')) {
-            throw new Exception('Current edition does not support D7');
-        }
     }
 }
