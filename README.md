@@ -1,5 +1,10 @@
 ﻿## Bitrix Vue Component
 
+Для использования Vue.js в 1С-Битрикс с данной библиотекой вам не потребуется установленный node.js
+и никаких зависимостей для сборки, потому что вся "магия" происходит полностью на php.\
+Пишите vue-компоненты на JavaScript и подключайте их одной строкой `Vue::includeComponent(['comp1', 'comp2', ...])`
+и используйте компоненты в приложении `<comp1></comp1>` как обычно.
+
 ```php
 <?php
 Dbogdanoff\Bitrix\Vue::includeComponent(['todo-list']);
@@ -126,16 +131,12 @@ Run the following to use the latest stable version
 ```sh
     composer require denx-b/bitrix-vue-component
 ```
-or if you want the latest master version
-```sh
-    composer require denx-b/bitrix-vue-component:dev-master
-```
 
 You can of course also manually edit your composer.json file
 ```json
 {
     "require": {
-       "denx-b/bitrix-vue-component": "0.9.*"
+       "denx-b/bitrix-vue-component": "1.1.*"
     }
 }
 ```
